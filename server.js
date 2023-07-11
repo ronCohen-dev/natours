@@ -2,8 +2,7 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 dotenv.config({ path: './config.env' });
 const app = require('./app');
-
-const connectionString = 'mongodb://localhost:27017/natours';
+const connectionString = process.env.DB_LOCAL;
 
 mongoose
   .connect(connectionString, {
