@@ -23,6 +23,7 @@ const userSchema = new mongoose.Schema({
     required: [true, 'A user must have a password'],
     trim: true,
     minlength: 8,
+    select: false,
   },
   passwordConfirm: {
     type: String,
@@ -33,6 +34,9 @@ const userSchema = new mongoose.Schema({
       },
     },
   },
+  passwordChangeAt: {
+    type: Date,
+  },
 });
 
 // encrypt the pass before saving in the db
@@ -42,6 +46,25 @@ userSchema.pre('save', async function (next) {
   this.passwordConfirm = undefined;
   next();
 });
+
+userSchema.methods.correctPassword = async function (
+  candidatePassword,
+  userPassword,
+) {
+  return await bcrypt.compare(candidatePassword, userPassword);
+};
+
+userSchema.methods.changePasswordAfterCreation = async function (JwtTimestamp) {
+  if (this.passwordChangeAt) {
+    const changeTimestamp = parseInt(
+      this.passwordChangeAt.getTime() / 1000,
+      10,
+    );
+    console.log(changeTimestamp, JwtTimestamp);
+    return JwtTimestamp < changeTimestamp;
+  }
+  return false;
+};
 
 const User = mongoose.model('User', userSchema);
 
